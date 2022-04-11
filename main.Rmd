@@ -1,0 +1,20 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Analiza danych w r
+celem projektu jest analiza danych w r
+
+##instalacja pakietów
+```{r}
+library(dplyr)
+library(rvest)
+```
+
+
+## pobranie i ekstrakcja wyników
+```{r}
+print(init)
+```
+
