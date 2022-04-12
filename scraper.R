@@ -21,7 +21,7 @@ scrap = function(client, url){
   
   while (load_more_button$isElementDisplayed()[[1]]){
     load_more_button$clickElement()
-    Sys.sleep(3)
+    Sys.sleep(6)
   }
   
   src <- client$getPageSource()[[1]]
@@ -47,6 +47,15 @@ scrap = function(client, url){
   data
 }
 
-# simpsons_data = scrap(remDr, 'https://www.imdb.com/title/tt0096697/reviews/?ref_=tt_ql_urv')
-# southpark_data = scrap(remDr, 'https://www.imdb.com/title/tt8649186/reviews/?ref_=tt_ql_urv')
-# familyguy_data = scrap(remDr, 'https://www.imdb.com/title/tt8649186/reviews/?ref_=tt_ql_urv')
+simpsons_data = scrap(remDr, 'https://www.imdb.com/title/tt0096697/reviews/?ref_=tt_ql_urv')
+write.csv(simpsons_data, './data/simpsons_data.csv')
+
+
+guy_data = scrap(remDr, 'https://www.imdb.com/title/tt0182576/reviews/?ref_=tt_ql_urv')
+write.csv(guy_data, './data/guy_data.csv')
+
+
+southpark_data = scrap(remDr, 'https://www.imdb.com/title/tt0121955/reviews/?ref_=tt_ql_urv')
+write.csv(southpark_data, './data/southpark_data.csv')
+
+
