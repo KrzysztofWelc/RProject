@@ -6,15 +6,57 @@ output: html_notebook
 # Analiza danych w r
 celem projektu jest analiza danych w r
 
-##instalacja pakietów
+## instalacja pakietów
 ```{r}
 library(dplyr)
-library(rvest)
+library(tidyr)
+library(tidytext)
+library(ggplot2)
 ```
 
 
-## pobranie i ekstrakcja wyników
+## wczytanie danych
 ```{r}
-print(init)
+family_guy_data = read.csv('./data/guy_data.csv')
+southpark_data = read.csv('./data/southpark_data.csv')
+simpsons_data = read.csv('./data/simpsons_data.csv')
+
 ```
 
+
+## przygotowanie danych
+### formatowanie dat
+```{r}
+format_date = function(date){
+  split = strsplit(date, ' ')[[1]]
+  if(split[2] == 'January') split[2] = '1'
+  if(split[2] == 'February') split[2] = '2'
+  if(split[2] == 'March') split[2] = '3'
+  if(split[2] == 'April') split[2] = '4'
+  if(split[2] == 'May') split[2] = '5'
+  if(split[2] == 'June') split[2] = '6'
+  if(split[2] == 'July') split[2] = '7'
+  if(split[2] == 'August') split[2] = '8'
+  if(split[2] == 'September') split[2] = '9'
+  if(split[2] == 'October') split[2] = '10'
+  if(split[2] == 'November') split[2] = '11'
+  if(split[2] == 'December') split[2] = '12'
+  res = paste(split[1], split[2], split[3], sep='/')
+  res
+}
+
+family_guy_data$date = lapply(family_guy_data$date, format_date)
+simpsons_data$date = lapply(simpsons_data$date, format_date)
+southpark_data$date = lapply(southpark_data$date, format_date)
+```
+
+### przygotowanie tekstów do analizy
+```{r}
+data("stop_words")
+
+tidy_simpsons = simpsons_data %>%
+  unnest_tokens(word, content) %>%
+  anti_join(stop_words, by='word')
+```
+
+## wizualizacja sentymentu recencji
