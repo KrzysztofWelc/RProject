@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## instalacja pakietów
+```{r}
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(ggplot2)
+```
+
+## wczytanie danych
+```{r}
+family_guy_data = read.csv('./data/guy_data.csv')
+southpark_data = read.csv('./data/southpark_data.csv')
+simpsons_data = read.csv('./data/simpsons_data.csv')
+
+```
+
+## przygotowanie danych
+```{r}
+sentiment_simpsons = simpsons_data %>%
+  unnest_tokens(word, content) %>%
+  anti_join(stop_words, by='word') %>%
+  inner_join(get_sentiments('nrc')) %>%
+  group_by(sentiment) %>%
+  summarise(ptg=n()) %>%
+  mutate(ptg=ptg/sum(ptg)*100) %>%
+  mutate(show= "simpsons") 
+
+sentiment_family_guy = family_guy_data %>%
+  unnest_tokens(word, content) %>%
+  anti_join(stop_words, by='word') %>%
+  inner_join(get_sentiments('nrc')) %>%
+  group_by(sentiment) %>%
+  summarise(ptg=n()) %>%
+  mutate(ptg=ptg/sum(ptg)*100) %>%
+  mutate(show= "family guy") 
+
+sentiment_southpark = southpark_data %>%
+  unnest_tokens(word, content) %>%
+  anti_join(stop_words, by='word') %>%
+  inner_join(get_sentiments('nrc')) %>%
+  group_by(sentiment) %>%
+  summarise(ptg=n()) %>%
+  mutate(ptg=ptg/sum(ptg)*100) %>%
+  mutate(show= "southpark") 
+
+sentiment = sentiment_family_guy %>%
+  bind_rows(sentiment_simpsons) %>%
+  bind_rows(sentiment_southpark)
+```
+
+## wizualizacja
+```{r}
+ggplot(sentiment, aes(fill=show, y=ptg, x=sentiment)) +
+  geom_bar(position="dodge", stat="identity") +
+  labs(x='sentyment', y='%')
+  
+```
