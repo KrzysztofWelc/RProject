@@ -48,50 +48,48 @@ afinn_sentiment <- function(data){
     group_by(date) %>% 
     summarise(sentiment = sum(value)) %>% 
     mutate(method = "AFINN")
+  
+  new_data <- new_data %>%
+    group_by(date) %>%
+    mutate(sentiment = sum(sentiment)/nrow(new_data)) 
+  
+  new_data$sentiment_ptg_first <- vector(mode="integer", length=nrow(new_data))
+  new_data$sentiment_ptg_next <- vector(mode="integer", length=nrow(new_data))
+  
+  for (i in 1:nrow(new_data)){
+    new_data$sentiment_ptg_first[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[1]-1)))
+  }
+  for (i in 2:nrow(new_data)){
+    new_data$sentiment_ptg_next[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[i-1]-1)))
+  }
+  new_data
 }
+
 
 simpson_sentiment_afinn <- afinn_sentiment(simpsons_tidy) 
 guy_sentiment_afinn <- afinn_sentiment(guy_tidy)
 southpark_sentiment_afinn <- afinn_sentiment(southpark_tidy) 
 
 
-
-#nrc lexicon
-
-nrc_sentiment <- function(data){
-  new_data <- data %>% 
-    inner_join(get_sentiments("nrc") %>% 
-                 #   filter(sentiment %in% c("positive", 
-                 #                           "negative"))
-                 # %>%
-                 mutate(method = "NRC")) %>%
-    count(comment = line, date, sentiment) %>%
-    pivot_wider(names_from = sentiment,
-                values_from = n,
-                values_fill = 0) %>% 
-    mutate(sentiment = positive - negative)
-}
-
-simpson_sentiment_nrc <- nrc_sentiment(simpsons_tidy)
-guy_sentiment_nrc <- nrc_sentiment(guy_tidy)
-southpark_sentiment_nrc <- nrc_sentiment(southpark_tidy)
-
-
-
 # afinn plots
 
   
-df1 <- ggplot(simpson_sentiment_afinn, aes(date, sentiment)) +
-  geom_col(show.legend = FALSE) +
+
+df1 <- ggplot(simpson_sentiment_afinn)  + 
+  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="yellow",colour="#006000")+
+#  geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The Simpsons")
 
-df2 <- ggplot(guy_sentiment_afinn, aes(date, sentiment)) +
-  geom_col(show.legend = FALSE) +
+df2 <- ggplot(guy_sentiment_afinn)  + 
+  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="cyan",colour="#006000")+
+ # geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The Family Guy")
 
-df3 <- ggplot(southpark_sentiment_afinn, aes(date, sentiment)) +
-  geom_col(show.legend = FALSE) +
+df3 <- ggplot(southpark_sentiment_afinn)  + 
+  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="green",colour="#006000")+
+ # geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The South Park")
+
 
 grid.arrange(df1, df2, df3)
 
