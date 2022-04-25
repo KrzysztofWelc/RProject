@@ -101,29 +101,40 @@ nrc_all <- simpson_sentiment_nrc %>%
 ```
 
 ```{r}
-df1 <- ggplot(simpson_sentiment_afinn, aes(date, sentiment, label=sentiment)) +
-  geom_col(show.legend = FALSE) +
-  ggtitle("The Simpsons") +
-    geom_text(position = position_dodge()) +
-  theme(axis.text.x = element_text(angle = 45))
 
-df2 <- ggplot(guy_sentiment_afinn, aes(date, sentiment, label=sentiment)) +
-  geom_col(show.legend = FALSE) +
-  ggtitle("The Family Guy") +
-  geom_text(position = position_dodge()) +
-  theme(axis.text.x = element_text(angle = 45))
+library(plotly)
+library(hrbrthemes)
 
-df3 <- ggplot(southpark_sentiment_afinn, aes(date, sentiment, label=sentiment)) +
-  geom_col(show.legend = FALSE) +
-  ggtitle("The South Park")+
-    geom_text(position = position_dodge()) +
-  theme(axis.text.x = element_text(angle = 45))
 
-grid.arrange(df1, df2, df3)
+df1 <- ggplot(simpson_sentiment_afinn)  + 
+  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="#69b3a2", alpha=0.5)+
+ geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  ggtitle("The Simpsons")+
+  theme(axis.text.x = element_text(angle = 45)) 
+
+df2 <- ggplot(guy_sentiment_afinn)  + 
+  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="#65f9a2", alpha=0.5)+
+ geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  ggtitle("The Family Guy")+
+  theme(axis.text.x = element_text(angle = 45)) 
+
+df3 <- ggplot(southpark_sentiment_afinn)  + 
+  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="#6ff9a8",alpha=.6)+
+ geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  ggtitle("The South Park")
+
+df1 = ggplotly(df1)
+df2 = ggplotly(df2)
+df3 = ggplotly(df3)
+
+df1
+df2
+df3
 ```
 ```{r}
 
 # top 5 emotion words
+library(patchwork)
 
 to_grepl_puller <- function(emotion){
   dict <- get_sentiments("nrc") %>%
@@ -153,9 +164,9 @@ knit_plot <- function(data, emotion){
     filter(grepl(emotion, word)) %>%
     slice_head(n=5) %>%
     mutate(word = reorder(word, n)) %>%
-    ggplot(aes(n, word, label=n)) +
-    geom_col() +
-    geom_text(position = position_dodge()) +
+    ggplot(aes(n, word, label=n, )) +
+    geom_col(fill="#69b3a2", alpha=0.5) +
+    geom_text(position = position_dodge(), fill="#ffffff", alpha=0.7) +
     labs(y = NULL) +
     ggtitle(plot_title)
 }
@@ -169,7 +180,7 @@ top_5 <- function(data) {
   plot5 <- knit_plot(data, fear)
   plot6 <- knit_plot(data, sadness)
   plot7 <- knit_plot(data, trust)
-  grid.arrange(plot1, plot2, plot3, plot4, plot5, plot6, plot7)
+  plot1+ plot2+ plot3+ plot4+plot5+ plot6+ plot7
 }
 
 

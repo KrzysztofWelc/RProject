@@ -77,17 +77,17 @@ southpark_sentiment_afinn <- afinn_sentiment(southpark_tidy)
 
 df1 <- ggplot(simpson_sentiment_afinn)  + 
   geom_bar(aes(x=date, y=sentiment),stat="identity", fill="yellow",colour="#006000")+
-#  geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+ geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The Simpsons")
 
 df2 <- ggplot(guy_sentiment_afinn)  + 
   geom_bar(aes(x=date, y=sentiment),stat="identity", fill="cyan",colour="#006000")+
- # geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+ geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The Family Guy")
 
 df3 <- ggplot(southpark_sentiment_afinn)  + 
   geom_bar(aes(x=date, y=sentiment),stat="identity", fill="green",colour="#006000")+
- # geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+ geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The South Park")
 
 
