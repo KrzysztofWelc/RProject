@@ -55,8 +55,11 @@ sentiment = sentiment_family_guy %>%
 
 ## wizualizacja
 ```{r}
-ggplot(sentiment, aes(fill=show, y=ptg, x=sentiment)) +
+ggplot(sentiment, aes(fill=show, y=ptg, x=sentiment, label=paste(round(ptg, digits = 1), '%', sep=''))) +
   geom_bar(position="dodge", stat="identity") +
+  geom_text(position = position_dodge(width = .9),    # move to center of bars
+              vjust = -0.5,   # nudge above top of bar
+              size = 3) +
   labs(x='sentyment', y='%')
   
 ```
