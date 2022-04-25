@@ -1,19 +1,28 @@
-#data import
+---
+title: "R Notebook"
+output: html_notebook
+---
+## data import
+```{r}
+
 
 simpsons_csv = read.csv("./data/simpsons_data.csv", header = TRUE)
 guy_csv = read.csv("./data/guy_data.csv", header = TRUE)
 southpark_csv = read.csv("./data/southpark_data.csv", header = TRUE)
 
-install.packages("textdata")
-install.packages("gridExtra")
+# install.packages("textdata")
+# install.packages("gridExtra")
 library(tidyr)
 library(tidytext)
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
 data(stop_words)
+```
 
-#preparing & tokenizing data
+## preparing & tokenizing data
+```{r}
+
 
 Sys.setlocale("LC_ALL","English")
 
@@ -37,11 +46,11 @@ prepare_my_data <- function(data){
 simpsons_tidy <- prepare_my_data(simpsons_csv)
 guy_tidy <- prepare_my_data(guy_csv)
 southpark_tidy <- prepare_my_data(southpark_csv)
+```
 
 
-
-#afinn lexicon
-
+## filtrowanie względem leksykonu affina
+```{r}
 afinn_sentiment <- function(data){
   new_data <- data %>% 
     inner_join(get_sentiments("afinn")) %>% 
@@ -53,9 +62,10 @@ afinn_sentiment <- function(data){
 simpson_sentiment_afinn <- afinn_sentiment(simpsons_tidy) 
 guy_sentiment_afinn <- afinn_sentiment(guy_tidy)
 southpark_sentiment_afinn <- afinn_sentiment(southpark_tidy) 
+```
 
-
-
+## filtrowanie względem leksykonu nrc
+```{r}
 #nrc lexicon
 
 nrc_sentiment <- function(data){
@@ -72,29 +82,46 @@ nrc_sentiment <- function(data){
     mutate(sentiment = positive - negative)
 }
 
-simpson_sentiment_nrc <- nrc_sentiment(simpsons_tidy)
-guy_sentiment_nrc <- nrc_sentiment(guy_tidy)
-southpark_sentiment_nrc <- nrc_sentiment(southpark_tidy)
+```
 
+```{r}
+simpson_sentiment_nrc <- nrc_sentiment(simpsons_tidy)%>%
+  mutate(show='simpsons')
+guy_sentiment_nrc <- nrc_sentiment(guy_tidy) %>%
+  mutate(show='family guy')
+southpark_sentiment_nrc <- nrc_sentiment(southpark_tidy)%>%
+  mutate(show='southpark')
+nrc_all <- simpson_sentiment_nrc %>%
+  bind_rows(
+    guy_sentiment_nrc
+  ) %>%
+  bind_rows(
+    southpark_sentiment_nrc 
+  )
+```
 
-
-# afinn plots
-
-  
-df1 <- ggplot(simpson_sentiment_afinn, aes(date, sentiment)) +
+```{r}
+df1 <- ggplot(simpson_sentiment_afinn, aes(date, sentiment, label=sentiment)) +
   geom_col(show.legend = FALSE) +
-  ggtitle("The Simpsons")
+  ggtitle("The Simpsons") +
+    geom_text(position = position_dodge()) +
+  theme(axis.text.x = element_text(angle = 45))
 
-df2 <- ggplot(guy_sentiment_afinn, aes(date, sentiment)) +
+df2 <- ggplot(guy_sentiment_afinn, aes(date, sentiment, label=sentiment)) +
   geom_col(show.legend = FALSE) +
-  ggtitle("The Family Guy")
+  ggtitle("The Family Guy") +
+  geom_text(position = position_dodge()) +
+  theme(axis.text.x = element_text(angle = 45))
 
-df3 <- ggplot(southpark_sentiment_afinn, aes(date, sentiment)) +
+df3 <- ggplot(southpark_sentiment_afinn, aes(date, sentiment, label=sentiment)) +
   geom_col(show.legend = FALSE) +
-  ggtitle("The South Park")
+  ggtitle("The South Park")+
+    geom_text(position = position_dodge()) +
+  theme(axis.text.x = element_text(angle = 45))
 
 grid.arrange(df1, df2, df3)
-
+```
+```{r}
 
 # top 5 emotion words
 
@@ -128,6 +155,7 @@ knit_plot <- function(data, emotion){
     mutate(word = reorder(word, n)) %>%
     ggplot(aes(n, word, label=n)) +
     geom_col() +
+    geom_text(position = position_dodge()) +
     labs(y = NULL) +
     ggtitle(plot_title)
 }
@@ -148,3 +176,7 @@ top_5 <- function(data) {
 top_5(simpsons_tidy)
 top_5(guy_tidy)
 top_5(southpark_tidy)
+
+```
+
+
