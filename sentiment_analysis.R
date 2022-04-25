@@ -29,7 +29,7 @@ prepare_my_data <- function(data){
   new_data <- new_data %>%
     unnest_tokens(word, text) %>%
     anti_join(stop_words)
-    
+  
   
   new_data
 }
@@ -55,12 +55,16 @@ afinn_sentiment <- function(data){
   
   new_data$sentiment_ptg_first <- vector(mode="integer", length=nrow(new_data))
   new_data$sentiment_ptg_next <- vector(mode="integer", length=nrow(new_data))
+  new_data$sentiment_ptg_all <- vector(mode="integer", length=nrow(new_data))
   
   for (i in 1:nrow(new_data)){
-    new_data$sentiment_ptg_first[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[1]-1)))
+    new_data$sentiment_ptg_first[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[1]-1))*100)
   }
   for (i in 2:nrow(new_data)){
-    new_data$sentiment_ptg_next[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[i-1]-1)))
+    new_data$sentiment_ptg_next[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[i-1]-1))*100)
+  }
+  for (i in 1:nrow(new_data)){
+    new_data$sentiment_ptg_all[i] <- ((new_data$sentiment[i]/max(new_data$sentiment))*100)
   }
   new_data
 }
@@ -73,21 +77,21 @@ southpark_sentiment_afinn <- afinn_sentiment(southpark_tidy)
 
 # afinn plots
 
-  
+
 
 df1 <- ggplot(simpson_sentiment_afinn)  + 
   geom_bar(aes(x=date, y=sentiment),stat="identity", fill="yellow",colour="#006000")+
- geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The Simpsons")
 
 df2 <- ggplot(guy_sentiment_afinn)  + 
   geom_bar(aes(x=date, y=sentiment),stat="identity", fill="cyan",colour="#006000")+
- geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The Family Guy")
 
 df3 <- ggplot(southpark_sentiment_afinn)  + 
   geom_bar(aes(x=date, y=sentiment),stat="identity", fill="green",colour="#006000")+
- geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
   ggtitle("The South Park")
 
 

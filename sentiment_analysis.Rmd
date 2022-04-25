@@ -1,9 +1,11 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 ## data import
-```{r}
+```{r warning = FALSE, message = FALSE}
 
 
 simpsons_csv = read.csv("./data/simpsons_data.csv", header = TRUE)
@@ -20,8 +22,8 @@ library(gridExtra)
 data(stop_words)
 ```
 
-## preparing & tokenizing data
-```{r}
+## przygotowanie danych i ich tokenizacja
+```{r warning = FALSE, message = FALSE}
 
 
 Sys.setlocale("LC_ALL","English")
@@ -50,22 +52,42 @@ southpark_tidy <- prepare_my_data(southpark_csv)
 
 
 ## filtrowanie względem leksykonu affina
-```{r}
+```{r warning = FALSE, message = FALSE}
 afinn_sentiment <- function(data){
   new_data <- data %>% 
     inner_join(get_sentiments("afinn")) %>% 
     group_by(date) %>% 
     summarise(sentiment = sum(value)) %>% 
     mutate(method = "AFINN")
+  
+  new_data <- new_data %>%
+    group_by(date) %>%
+    mutate(sentiment = sum(sentiment)/nrow(new_data)) 
+  
+  new_data$sentiment_ptg_first <- vector(mode="integer", length=nrow(new_data))
+  new_data$sentiment_ptg_next <- vector(mode="integer", length=nrow(new_data))
+  new_data$sentiment_ptg_all <- vector(mode="integer", length=nrow(new_data))
+  
+  for (i in 1:nrow(new_data)){
+    new_data$sentiment_ptg_first[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[1]-1))*100)
+  }
+  for (i in 2:nrow(new_data)){
+    new_data$sentiment_ptg_next[i] <- ((abs(new_data$sentiment[i]/new_data$sentiment[i-1]-1))*100)
+  }
+  for (i in 1:nrow(new_data)){
+    new_data$sentiment_ptg_all[i] <- ((new_data$sentiment[i]/max(new_data$sentiment))*100)
+  }
+  new_data
 }
 
 simpson_sentiment_afinn <- afinn_sentiment(simpsons_tidy) 
 guy_sentiment_afinn <- afinn_sentiment(guy_tidy)
 southpark_sentiment_afinn <- afinn_sentiment(southpark_tidy) 
+
 ```
 
 ## filtrowanie względem leksykonu nrc
-```{r}
+```{r warning = FALSE, message = FALSE}
 #nrc lexicon
 
 nrc_sentiment <- function(data){
@@ -84,7 +106,7 @@ nrc_sentiment <- function(data){
 
 ```
 
-```{r}
+```{r warning = FALSE, message = FALSE}
 simpson_sentiment_nrc <- nrc_sentiment(simpsons_tidy)%>%
   mutate(show='simpsons')
 guy_sentiment_nrc <- nrc_sentiment(guy_tidy) %>%
@@ -98,30 +120,29 @@ nrc_all <- simpson_sentiment_nrc %>%
   bind_rows(
     southpark_sentiment_nrc 
   )
-```
 
-```{r}
+```
+## Zmiana sentymentu w czasie wyrażona w skali procentowej %
+```{r warning = FALSE, message = FALSE}
 
 library(plotly)
 library(hrbrthemes)
 
 
 df1 <- ggplot(simpson_sentiment_afinn)  + 
-  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="#69b3a2", alpha=0.5)+
- geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  geom_bar(aes(x=date, y=sentiment_ptg_all),stat="identity", fill="#69b3a2", alpha=0.5)+
   ggtitle("The Simpsons")+
   theme(axis.text.x = element_text(angle = 45)) 
 
 df2 <- ggplot(guy_sentiment_afinn)  + 
-  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="#65f9a2", alpha=0.5)+
- geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
+  geom_bar(aes(x=date, y=sentiment_ptg_all),stat="identity", fill="#65f9a2", alpha=0.5)+
   ggtitle("The Family Guy")+
   theme(axis.text.x = element_text(angle = 45)) 
 
 df3 <- ggplot(southpark_sentiment_afinn)  + 
-  geom_bar(aes(x=date, y=sentiment),stat="identity", fill="#6ff9a8",alpha=.6)+
- geom_line(aes(x=date, y=sentiment_ptg_first, group=1),stat="identity",color="red") +
-  ggtitle("The South Park")
+  geom_bar(aes(x=date, y=sentiment_ptg_all),stat="identity", fill="#6ff9a8",alpha=.6)+
+  ggtitle("The South Park")+
+  theme(axis.text.x = element_text(angle = 45)) 
 
 df1 = ggplotly(df1)
 df2 = ggplotly(df2)
@@ -131,7 +152,37 @@ df1
 df2
 df3
 ```
-```{r}
+
+## Zmiana sentymentu w czasie wzgledem roku poprzedniego
+```{r warning = FALSE, message = FALSE}
+
+af1 <- ggplot(simpson_sentiment_afinn) +
+ geom_line(aes(x=date, y=sentiment_ptg_next, group=1),stat="identity",color="red") +
+  ggtitle("The Simpsons")+
+  theme(axis.text.x = element_text(angle = 45)) 
+
+af2 <- ggplot(guy_sentiment_afinn)  + 
+ geom_line(aes(x=date, y=sentiment_ptg_next, group=1),stat="identity",color="red") +
+  ggtitle("The Family Guy")+
+  theme(axis.text.x = element_text(angle = 45)) 
+
+af3 <- ggplot(southpark_sentiment_afinn)  + 
+ geom_line(aes(x=date, y=sentiment_ptg_next, group=1),stat="identity",color="red") +
+  ggtitle("The South Park")+
+  theme(axis.text.x = element_text(angle = 45)) 
+
+af1 = ggplotly(af1)
+af2 = ggplotly(af2)
+af3 = ggplotly(af3)
+
+af1
+af2
+af3
+```
+
+
+## 5 najpopularniejszych slow w podziale na poszczegolne emocje
+```{r warning = FALSE, message = FALSE}
 
 # top 5 emotion words
 library(patchwork)
